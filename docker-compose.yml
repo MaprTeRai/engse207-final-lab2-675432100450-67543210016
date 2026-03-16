@@ -1,0 +1,147 @@
+services:
+  # ── Auth DB ─────────────────────────────────────────────────────
+  auth-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB:       ${AUTH_DB_NAME}
+      POSTGRES_USER:     ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+      - ./db/auth.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [taskboard-net]
+
+  # ── Task DB ─────────────────────────────────────────────────────
+  task-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB:       ${TASK_DB_NAME}
+      POSTGRES_USER:     ${TASK_DB_USER}
+      POSTGRES_PASSWORD: ${TASK_DB_PASSWORD}
+    volumes:
+      - task-db-data:/var/lib/postgresql/data
+      - ./db/task.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TASK_DB_USER} -d ${TASK_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [taskboard-net]
+
+  # ── User DB ─────────────────────────────────────────────────────
+  user-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB:       ${USER_DB_NAME}
+      POSTGRES_USER:     ${USER_DB_USER}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+      - ./db/user.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USER} -d ${USER_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [taskboard-net]
+
+  # ── Auth Service ────────────────────────────────────────────────
+  auth-service:
+    build: ./auth-service
+    environment:
+      DB_HOST:      auth-db
+      DB_PORT:      5432
+      DB_NAME:      ${AUTH_DB_NAME}
+      DB_USER:      ${AUTH_DB_USER}
+      DB_PASSWORD:  ${AUTH_DB_PASSWORD}
+      JWT_SECRET:   ${JWT_SECRET}
+      JWT_EXPIRES:  ${JWT_EXPIRES}
+      PORT:         3001
+    depends_on:
+      auth-db: { condition: service_healthy }
+    networks: [taskboard-net]
+    restart: unless-stopped
+
+  # ── Task Service ─────────────────────────────────────────────────
+  task-service:
+    build: ./task-service
+    environment:
+      DB_HOST:      task-db
+      DB_PORT:      5432
+      DB_NAME:      ${TASK_DB_NAME}
+      DB_USER:      ${TASK_DB_USER}
+      DB_PASSWORD:  ${TASK_DB_PASSWORD}
+      JWT_SECRET:   ${JWT_SECRET}
+      PORT:         3002
+    depends_on:
+      task-db: { condition: service_healthy }
+    networks: [taskboard-net]
+    restart: unless-stopped
+
+  # ── User Service ─────────────────────────────────────────────────
+  user-service:
+    build: ./user-service
+    environment:
+      DB_HOST:      user-db
+      DB_PORT:      5432
+      DB_NAME:      ${USER_DB_NAME}
+      DB_USER:      ${USER_DB_USER}
+      DB_PASSWORD:  ${USER_DB_PASSWORD}
+      JWT_SECRET:   ${JWT_SECRET}
+      PORT:         3004
+    depends_on:
+      user-db: { condition: service_healthy }
+    networks: [taskboard-net]
+    restart: unless-stopped
+
+  # ── Log Service ──────────────────────────────────────────────────
+  log-service:
+    build: ./log-service
+    environment:
+      DB_HOST:      auth-db
+      DB_PORT:      5432
+      DB_NAME:      ${AUTH_DB_NAME}
+      DB_USER:      ${AUTH_DB_USER}
+      DB_PASSWORD:  ${AUTH_DB_PASSWORD}
+      JWT_SECRET:   ${JWT_SECRET}
+      PORT:         3003
+    depends_on:
+      auth-db: { condition: service_healthy }
+    networks: [taskboard-net]
+    restart: unless-stopped
+
+  # ── Frontend ────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    networks: [taskboard-net]
+
+  # ── Nginx ───────────────────────────────────────────────────────
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - auth-service
+      - task-service
+      - user-service
+      - log-service
+      - frontend
+    networks: [taskboard-net]
+    restart: unless-stopped
+
+volumes:
+  auth-db-data:
+  task-db-data:
+  user-db-data:
+
+networks:
+  taskboard-net:
+    driver: bridge
