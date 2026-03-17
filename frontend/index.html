@@ -1465,29 +1465,34 @@
     }
 
     async function doLogin() {
-      const email = document.getElementById("login-email").value.trim();
-      const password = document.getElementById("login-password").value;
-      if (!email || !password) {
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    
+    if (!email || !password) {
         showAuthMsg("กรุณากรอกข้อมูลให้ครบ", "error");
         return;
-      }
-
-      // เติม / หลัง login
-      const res = await fetch(`/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        token = data.token;
-        localStorage.setItem("jwt_token", token);
-        initApp(data.user);
-      } else {
-        showAuthMsg("❌ " + (data.error || "Login ล้มเหลว"), "error");
-      }
     }
+
+    try { // แนะนำให้ครอบ try-catch เผื่อกรณี Network พัง
+        const res = await fetch(`/api/auth/login/`, { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+        
+        const data = await res.json();
+
+        if (res.ok) {
+            token = data.token;
+            localStorage.setItem("jwt_token", token);
+            initApp(data.user);
+        } else {
+            showAuthMsg("❌ " + (data.error || "Login ล้มเหลว"), "error");
+        }
+    } catch (err) {
+        showAuthMsg("❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้", "error");
+    }
+} 
 
     async function doRegister() {
       const username = document.getElementById("reg-username").value.trim();
