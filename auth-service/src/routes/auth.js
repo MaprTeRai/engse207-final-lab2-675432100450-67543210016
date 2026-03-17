@@ -237,3 +237,30 @@ router.get("/health", (req, res) => {
 });
 
 module.exports = router;
+
+// ─────────────────────────────────────────────
+// GET /api/auth/me
+// ─────────────────────────────────────────────
+router.get("/me", (req, res) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "ไม่พบ Token กรุณา Login" });
+  }
+
+  try {
+    // ใช้ verifyToken (ที่คุณ import มาจาก middleware/jwtUtils)
+    const decoded = verifyToken(token);
+    
+    // ส่งข้อมูลที่ถอดรหัสออกมาจาก Token กลับไป
+    res.json({
+      id: decoded.sub,
+      email: decoded.email,
+      username: decoded.username,
+      role: decoded.role
+    });
+  } catch (err) {
+    res.status(401).json({ error: "Token ไม่ถูกต้อง หรือหมดอายุ" });
+  }
+});
