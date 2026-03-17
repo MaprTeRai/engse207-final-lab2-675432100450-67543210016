@@ -1,11 +1,16 @@
 FROM nginx:1.25-alpine
 
-# ทุกอย่างอยู่โฟลเดอร์เดียวกันแล้ว ไม่ต้องมีชื่อโฟลเดอร์นำหน้า
+# 1. ลบคอนฟิกเริ่มต้นทิ้งให้หมดก่อน
+RUN rm /etc/nginx/conf.d/default.conf
+
+# 2. Copy หน้าเว็บไปวางในโฟลเดอร์ html
 COPY index.html /usr/share/nginx/html/index.html
 COPY logs.html /usr/share/nginx/html/logs.html
-COPY nginx.conf /etc/nginx/templates/default.conf.template
 
-RUN rm /etc/nginx/conf.d/default.conf
+# 3. สำคัญ: Copy nginx.conf ไปวางทับไฟล์คอนฟิกหลัก "โดยตรง" 
+# ห้ามเอาไปวางใน /templates เพื่อเลี่ยงการโดน envsubst แก้ไขไฟล์
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
