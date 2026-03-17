@@ -1,11 +1,10 @@
 FROM nginx:1.25-alpine
 
-# 1. ไฟล์พวกนี้อยู่ที่ Root (ข้างนอกโฟลเดอร์ nginx) ให้ใช้ path เดิมได้
-# แต่ถ้ามันหาไม่เจอ ให้ลองเติม ../ นำหน้า หรือเช็คตำแหน่งอีกครั้ง
-COPY index.html /usr/share/nginx/html/index.html
-COPY logs.html  /usr/share/nginx/html/logs.html
+# ดึงไฟล์จากโฟลเดอร์ frontend (เพราะ tree บอกว่ามันอยู่ที่นั่น)
+COPY frontend/index.html /usr/share/nginx/html/index.html
+COPY frontend/logs.html /usr/share/nginx/html/logs.html
 
-# 2. **จุดสำคัญ** ไฟล์ nginx.conf อยู่ในโฟลเดอร์ nginx ต้องเติม "nginx/" นำหน้า
+# ดึงไฟล์ config จากโฟลเดอร์ nginx
 COPY nginx/nginx.conf /etc/nginx/templates/default.conf.template
 
 RUN rm /etc/nginx/conf.d/default.conf
