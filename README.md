@@ -303,28 +303,28 @@ window.APP_CONFIG = {
 ภาพการทดสอบอยู่ในโฟลเดอร์ `screenshots/` ประกอบด้วย
 
 - `01_railway_dashboard.png`
-![alt text](screenshots/4.png)
-- `02_auth_register_cloud.png`
 ![alt text](screenshots/1.png)
+- `02_auth_register_cloud.png`
+![alt text](screenshots/2.png)
 - `03_auth_login_cloud.png`
-![alt text](screenshots/8.png)
-- `04_auth_me_cloud.png`
-
-- `05_user_me_cloud.png`
 ![alt text](screenshots/3.png)
-- `06_user_update_cloud.png`
+- `04_auth_me_cloud.png`
+![alt text](screenshots/4.png)
+- `05_user_me_cloud.png`
 ![alt text](screenshots/5.png)
-- `07_task_create_cloud.png`
+- `06_user_update_cloud.png`
 ![alt text](screenshots/6.png)
+- `07_task_create_cloud.png`
+![alt text](screenshots/7.png)
 - `08_task_list_cloud.png`
-
+![alt text](screenshots/8.png)
 - `09_protected_401_check.png`
-
+![alt text](screenshots/9.png)
 - `10_member_forbidden_403.png`
-
+![alt text](screenshots/10.png)
 - `11_admin_users_success.png`
-
 - `12_readme_architecture.png`
+![alt text](screenshots/12.png)
 
 ---
 
